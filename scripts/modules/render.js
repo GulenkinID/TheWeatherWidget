@@ -1,57 +1,72 @@
-import { getCurrentDateTime } from "./utils.js";
+import { calculateDewPoint, convertPressure, getCurrentDateTime, getWindDirection } from "./utils.js";
 
 
-export const renderWidgetToday = (widget) => {
+export const renderWidgetToday = (widget, data) => {
+	const { getDayOfMonth, 
+		getMonth,
+		getDayOfWeek, 
+		getYear, 
+		getHours, 
+		getMinutes,
+	} = getCurrentDateTime();
 
-	const currentDateTime = getCurrentDateTime();
-	console.log(currentDateTime);
-	console.log(`${currentDateTime.getDayOfMonth} ${currentDateTime.getMonth} ${currentDateTime.getYear}`);
-
+	const {
+		weather,
+		name,
+		main,
+	} = data
+	
 	widget.insertAdjacentHTML(
 		'beforeend',
 		`
 		<div class="widget__today">
       <div class="widget__date-block">
-        <p class="widget__date">${currentDateTime.getDayOfMonth} ${currentDateTime.getMonth} ${currentDateTime.getYear}</p>
-        <p class="widget__time">${currentDateTime.getHours}:${currentDateTime.getMinutes}</p>
-        <p class="widget__day">${currentDateTime.getDayOfWeek}</p>
+        <p class="widget__date">${getDayOfMonth} ${getMonth} ${getYear}</p>
+        <p class="widget__time">${getHours}:${getMinutes}</p>
+        <p class="widget__day">${getDayOfWeek}</p>
       </div>
       <div class="widget__icon">
-        <img class="widget__img" src="./icon/01d.svg" alt="Погода">
+        <img class="widget__img" src="./icon/${weather[0].icon}.svg" alt="Погода">
       </div>
       <div class="widget__wheather">
         <div class="widget__city">
-          <p>Калининград</p>
+          <p>${name}</p>
           <button class="widget__change-city" aria-label="Изменить город"></button>
         </div>
-        <p class="widget__temp-big">19.3°C</p>
+        <p class="widget__temp-big">${(main.temp).toFixed(1)}°C</p>
         <p class="widget__felt">ощущается</p>
-        <p class="widget__temp-small">18.8 °C</p>
+        <p class="widget__temp-small">${(main.feels_like).toFixed(1)} °C</p>
       </div>
     </div>
 		`
 	)
 }
 
-export const renderWidgetOther = (widget) => {
+export const renderWidgetOther = (widget, data) => {
+	
+	const {
+		wind,
+		main,
+	} = data;
+
 	widget.insertAdjacentHTML(
 		'beforeend',
 		`
 		<div class="widget__other">
       <div class="widget__wind">
         <p class="widget__wind-title">Ветер</p>
-        <p class="widget__wind-speed">3.94 м/с</p>
-        <p class="widget__wind-text">&#8599;</p>
+        <p class="widget__wind-speed">${wind.speed} м/с</p>
+        <p class="widget__wind-text">${getWindDirection(wind.deg)}</p>
 
       </div>
       <div class="widget__humidity">
         <p class="widget__humidity-title">Влажность</p>
-        <p class="widget__humidity-value">27%</p>
-        <p class="widget__humidity-text">Т.Р: -0.2 °C</p>
+        <p class="widget__humidity-value">${main.humidity}%</p>
+        <p class="widget__humidity-text">Т.Р: ${calculateDewPoint(main.temp, main.humidity)} °C</p>
       </div>
       <div class="widget__pressure">
         <p class="widget__pressure-title">Давление</p>
-        <p class="widget__pressure-value">768.32</p>
+        <p class="widget__pressure-value">${convertPressure(main.pressure)}</p>
         <p class="widget__pressure-text">мм рт.ст.</p>
       </div>
     </div>
@@ -92,4 +107,8 @@ export const renderWidgetForecast = (widget) => {
     </ul>
 		`
 	)
+}
+export const showError = (widget, err) => {
+	widget.textContent = err.toString();
+	widget.classList.add('widget__error');
 }
